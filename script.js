@@ -56,3 +56,9 @@
     });
   });
 })();
+// Модели: «Откликнуться» подставляет процедуру в форму (без отправки данных)
+document.querySelectorAll('[data-offer]').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var i = document.querySelector('#apply input[name="f3"]'); if (i) i.value = b.dataset.offer;
+  });
+});
