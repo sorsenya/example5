@@ -1,7 +1,7 @@
 /* Настройки интеграции. Адреса — публичные URL Google Apps Script (секретных ключей в браузере нет). */
 window.CB_CONFIG = {
-  CONTENT_URL: 'https://script.google.com/macros/s/AKfycbxh7kzT_uU_kuqY8i7pVevB67FMb71jV_NlVg6RWiak8kAvYHR6TCLxSx4v1Mc6VmmUjQ/exec',
-  LEADS_URL: 'https://script.google.com/macros/s/AKfycbze6eI30ybIYm4vKjvRSx5TMIrkt7ZcrdAaAX1GP45YZWvIzRjRjS8NXBWcdrh_d9YsIw/exec',
+  CONTENT_URL: 'https://script.google.com/macros/s/AKfycbze6eI30ybIYm4vKjvRSx5TMIrkt7ZcrdAaAX1GP45YZWvIzRjRjS8NXBWcdrh_d9YsIw/exec',
+  LEADS_URL: 'https://script.google.com/macros/s/AKfycbxh7kzT_uU_kuqY8i7pVevB67FMb71jV_NlVg6RWiak8kAvYHR6TCLxSx4v1Mc6VmmUjQ/exec',
   CACHE_KEY: 'cb:content:v1',
   CACHE_FRESH_MS: 60 * 1000,        // в пределах минуты повторный запрос к таблице не делается
   FETCH_TIMEOUT_MS: 12000,
