@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Проверка API контента</title>
+<style>body{font:15px/1.5 system-ui,sans-serif;max-width:900px;margin:24px auto;padding:0 16px}pre{background:#f4efe9;padding:12px;overflow:auto;max-height:420px}td,th{border:1px solid #ccc;padding:4px 10px;text-align:left}table{border-collapse:collapse}.ok{color:#2f6b3a}.bad{color:#a4432f}</style></head>
+<body><h1>Проверка API контента (только чтение)</h1>
+<p>Страница делает один GET-запрос к API №1 и показывает, что вернулось. Заявки она <b>не отправляет</b>.</p>
+<div id="out">Загрузка…</div><h2>Ответ целиком</h2><pre id="raw"></pre>
+<script src="../js/config.js"></script>
+<script>
+fetch(CB_CONFIG.CONTENT_URL + '?action=content').then(r => r.text()).then(t => {
+  document.getElementById('raw').textContent = t;
+  var j; try { j = JSON.parse(t); } catch (e) { document.getElementById('out').innerHTML = '<p class="bad">Ответ не JSON — проверьте адрес и доступ «Все» при публикации Web App.</p>'; return; }
+  if (!j.success) { document.getElementById('out').innerHTML = '<p class="bad">API вернул ошибку: ' + (j.error && j.error.code) + ' — ' + (j.error && j.error.message) + '</p>'; return; }
+  var rows = Object.keys(j.data).map(k => { var v = j.data[k]; var n = Array.isArray(v) ? v.length : Object.keys(v).length; return '<tr><td>' + k + '</td><td>' + (Array.isArray(v) ? 'список' : 'поля') + '</td><td>' + n + '</td></tr>'; }).join('');
+  document.getElementById('out').innerHTML = '<p class="ok">API работает. Версия: ' + (j.meta && j.meta.version) + ', валюта: ' + (j.meta && j.meta.currency) + (j.meta && j.meta.unavailable ? ' <span class="bad">· недоступные разделы: ' + j.meta.unavailable.join(', ') + '</span>' : '') + '</p><table><tr><th>Раздел</th><th>Тип</th><th>Опубликовано</th></tr>' + rows + '</table><p>Нули — нормально, пока в таблице нет строк со статусом «Готово».</p>';
+}).catch(e => { document.getElementById('out').innerHTML = '<p class="bad">Запрос не выполнен: ' + e.message + '</p>'; });
+</script></body></html>

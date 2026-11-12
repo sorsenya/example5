@@ -1,4 +1,6 @@
+/* script.js — интерфейс сайта: меню, появление блоков, фильтры, просмотр фото, вкладки; запуск загрузки контента. */
 (function () {
+  var CB = window.CB = window.CB || {};
   var hd = document.getElementById('hd'), nv = document.getElementById('nv'), bg = document.getElementById('bg');
   function sc() { hd.classList.toggle('s', window.scrollY > 20); }
   sc(); window.addEventListener('scroll', sc, { passive: true });
@@ -10,20 +12,21 @@
   nv.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { menu(false); }); });
   window.addEventListener('resize', function () { if (window.innerWidth > 1000) menu(false); });
 
-  if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.rv').forEach(function (el) { io.observe(el); });
-  } else document.querySelectorAll('.rv').forEach(function (el) { el.classList.add('on'); });
+  // Плавное появление; CB.reveal вызывается и для динамически добавленных блоков
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) {
+    es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } });
+  }, { threshold: 0.1 }) : null;
+  CB.reveal = function (root) {
+    (root || document).querySelectorAll('.rv:not(.on)').forEach(function (el) { io ? io.observe(el) : el.classList.add('on'); });
+  };
+  CB.reveal();
 
-  // Портфолио: фильтры
-  var fl = document.querySelector('.filters');
-  if (fl) fl.addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
+  // Портфолио: фильтры (кнопки создаются динамически — делегирование)
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.filters button'); if (!b) return;
+    var fl = b.closest('.filters'), f = b.getAttribute('data-f');
     fl.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
-    var f = b.dataset.f;
-    document.querySelectorAll('.gi').forEach(function (g) { g.hidden = !(f === 'all' || g.dataset.c === f); });
+    document.querySelectorAll('.gal .gi').forEach(function (g) { g.hidden = !(f === 'all' || g.getAttribute('data-k') === f || g.getAttribute('data-c') === f); });
   });
 
   // Просмотр фото
@@ -31,34 +34,20 @@
   function close() { lb.hidden = true; document.body.style.overflow = ''; }
   document.addEventListener('click', function (e) {
     var z = e.target.closest('.zoom');
-    if (z) { lbi.src = z.dataset.full; lbi.alt = z.dataset.alt; lbp.textContent = z.dataset.alt; lb.hidden = false; document.body.style.overflow = 'hidden'; }
+    if (z) { lbi.src = z.getAttribute('data-full'); lbi.alt = z.getAttribute('data-alt') || ''; lbp.textContent = z.getAttribute('data-alt') || ''; lb.hidden = false; document.body.style.overflow = 'hidden'; }
     else if (e.target === lb || e.target.closest('.lbx')) close();
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
 
-  // Вкладки форм
-  var tabs = document.querySelector('.tabs');
-  if (tabs) tabs.addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
+  // Вкладки форм на странице контактов
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.tabs button'); if (!b) return;
+    var tabs = b.closest('.tabs');
     tabs.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
-    document.querySelectorAll('[data-p]').forEach(function (p) { p.hidden = p.dataset.p !== b.dataset.t; });
+    document.querySelectorAll('[data-p]').forEach(function (p) { p.hidden = p.getAttribute('data-p') !== b.getAttribute('data-t'); });
   });
 
-  // Формы: только клиентская валидация, без отправки и без сообщения об успехе
-  document.querySelectorAll('.form').forEach(function (f) {
-    f.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var bad = 0;
-      f.querySelectorAll('input[required]').forEach(function (i) {
-        var empty = !i.value.trim(); i.classList.toggle('bad', empty); if (empty) bad++;
-      });
-      f.querySelector('.fmsg').textContent = bad ? 'Заполните обязательные поля: имя и контакт.' : 'Отправка пока не подключена: это визуальный прототип.';
-    });
-  });
+  // Контент из Google Sheets: один общий источник для всех блоков страницы
+  CB.content.subscribe(CB.render);
+  CB.content.load();
 })();
-// Модели: «Откликнуться» подставляет процедуру в форму (без отправки данных)
-document.querySelectorAll('[data-offer]').forEach(function (b) {
-  b.addEventListener('click', function () {
-    var i = document.querySelector('#apply input[name="f3"]'); if (i) i.value = b.dataset.offer;
-  });
-});
